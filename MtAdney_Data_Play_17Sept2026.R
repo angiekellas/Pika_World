@@ -96,7 +96,7 @@ var(hourly_data$haypile_visits)
 pika_poisson <- brm(
   haypile_visits ~ temperature + I(temperature^2),
   data = hourly_data,
-  family = poisson(),
+  family = negbinomial,
   chains = 4,
   cores = 4,
   iter = 4000
@@ -124,12 +124,15 @@ cmdstanr::cmdstan_version()
 pika_poisson <- brm(
   haypile_visits ~ temperature + I(temperature^2),
   data = hourly_data,
-  family = poisson(),
+  family = negbinomial(),
   chains = 4,
   cores = 4,
   iter = 4000,
   backend = "cmdstanr"
 )
+
+plot(pika_poisson)
+pp_check(pika_poisson)
 summary(pika_poisson)
 #plot
 conditional_effects(
