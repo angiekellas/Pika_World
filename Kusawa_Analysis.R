@@ -38,9 +38,17 @@ hourly_haypiles_kusawa <- kusawa_camera_detections %>%
     haypile_visits = n(),
     .groups = "drop"
   )
-
 #save as an rds
 saveRDS(hourly_haypiles_kusawa, "hourly_haypiles_kusawa.rds")
+
+#group regardless of camera 
+haypiles_per_hour_all_cams<- hourly_haypiles_kusawa %>%
+  group_by(hour) %>%
+  summarise(
+    haypile_visits = sum(haypile_visits),
+    .groups = "drop"
+  )
+
 
 # load in huge aru output file 
 kusawa_meeps_csv <- file.choose()
@@ -59,4 +67,61 @@ print(paste("RDS file saved to:", kusawa_rds_file))
 
 # check the dataset 
 print(dim(kusawa_meeps_data))
+
+#clip so that data only contains meeps with confidence over 10 as per charlottes thesis protocol
+kusawa_meeps_clipped <- kusawa_meeps_data %>%
+  filter(PIKA > 10)
+
+
+# Make sure the dataset is a data.table
+setDT(kusawa_meeps_clipped)
+
+# Extract the recording start time from the filename
+kusawa_meeps_clipped[, recording_start := as.POSIXct(
+  sub(".*(\\d{8}_\\d{6})\\.wav$", "\\1", file),
+  format = "%Y%m%d_%H%M%S",
+  tz = "UTC"
+)]
+
+# Calculate the actual time of each meep
+kusawa_meeps_clipped[, meep_time := recording_start + start_time]
+
+# Group detections by hour and count the meeps
+meeps_per_hour <- kusawa_meeps_clipped[, .(
+  meep_count = .N
+), by = .(
+  hour = as.POSIXct(
+    format(meep_time, "%Y-%m-%d %H:00:00", tz = "UTC"),
+    tz = "UTC"
+  )
+)]
+
+# check it out
+meeps_per_hour[order(hour)]
+
+#join the two datasets to start comparing 
+
+meeps_haypiles <- inner_join(
+  meeps_per_hour,
+  haypiles_per_hour_all_cams,
+  by = "hour"
+)
+
+head(meeps_haypiles)
+
+#plot it
+library(ggplot2)
+
+ggplot(meeps_haypiles, aes(x = meep_count, y = haypile_visits)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(
+    x = "Meep detections per hour",
+    y = "Haypile visits per hour (all cameras)",
+    title = "Meep detections vs. haypile visits"
+  ) +
+  theme_minimal()
+
+
+
 
