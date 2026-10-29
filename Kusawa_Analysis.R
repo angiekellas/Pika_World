@@ -69,10 +69,10 @@ print(paste("RDS file saved to:", kusawa_rds_file))
 print(dim(kusawa_meeps_data))
 
 #clip so that data only contains meeps with confidence over 10 as per charlottes thesis protocol
-kusawa_meeps_clipped <- kusawa_meeps_data %>%
-  filter(PIKA > 10)
+# kusawa_meeps_clipped <- kusawa_meeps_data %>%
+#   filter(PIKA > 10)
 
-
+kusawa_meeps_clipped <- kusawa_meeps_data
 # Make sure the dataset is a data.table
 setDT(kusawa_meeps_clipped)
 
@@ -82,6 +82,11 @@ kusawa_meeps_clipped[, recording_start := as.POSIXct(
   format = "%Y%m%d_%H%M%S",
   tz = "UTC"
 )]
+
+kusawa_meeps_clipped[,hour := as.POSIXct(format(meep_time, "%Y-%m-%d %H:00:00", tz = "UTC"),tz = "UTC")]
+kusawa_meeps <- kusawa_meeps_clipped[,.(meep=sum(PIKA > 10)),by = .(start_time,end_time)]
+
+
 
 # Calculate the actual time of each meep
 kusawa_meeps_clipped[, meep_time := recording_start + start_time]
