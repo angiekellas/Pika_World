@@ -14,6 +14,9 @@ ARU_summary <- foreach(file = ARU_CSV,.combine = rbind)%do%{
   
   path <- file
   one_site <- fread(path)
+  one_site[,is_dupl := round(one_site$start_time*100)%%2 != 1]
+  one_site <- one_site[is_dupl == T,]
+  one_site[,is_dupl:= NULL]
   ### the site name must be the first word of the csv file, followd by _
   site_name <- str_extract(path,"raw_aru/[:alpha:]+")
   site_name <- str_remove(site_name,"raw_aru/")
@@ -46,7 +49,9 @@ write.table(ARU_hour,file.path("data","processed_aru","ARU_hour.csv"),row.names 
 #### processing one file for debugging ####
 path <- ARU_CSV[2]
 one_site <- fread(path)
-
+one_site[,is_dupl := round(one_site$start_time*100)%%2 != 1]
+one_site <- one_site[is_dupl == T,]
+one_site[,is_dupl:= NULL]
 site_name <- str_extract(path,"raw_aru/[:alpha:]+")
 site_name <- str_remove(site_name,"raw_aru/")
 one_site_summarized <- one_site[,.(meep = sum(PIKA >10)),by= file]
