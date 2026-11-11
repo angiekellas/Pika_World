@@ -14,6 +14,7 @@ ARU_summary <- foreach(file = ARU_CSV,.combine = rbind)%do%{
   
   path <- file
   one_site <- fread(path)
+  # this is the line that removes the overlapped clips
   one_site[,is_dupl := round(one_site$start_time*100)%%2 != 1]
   one_site <- one_site[is_dupl == T,]
   one_site[,is_dupl:= NULL]
