@@ -1,7 +1,3 @@
-#install packages
-install.packages("data.table")
-
-
 #load packages
 
 library(readr)
@@ -9,6 +5,7 @@ library(dplyr)
 library(lubridate)
 library(tidyverse)
 library(data.table)
+
 
 #bring in camera data
 kusawa_camera_detections <- read_csv("data/kusawa_detections.csv")

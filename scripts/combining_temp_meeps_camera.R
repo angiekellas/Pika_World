@@ -50,4 +50,5 @@ write.csv(
   row.names = FALSE
 )
 
-
+meeps_temp_camera_data <- read.csv("data/combined_temp_meeps/Pika_climate_camera.csv")
+hea
